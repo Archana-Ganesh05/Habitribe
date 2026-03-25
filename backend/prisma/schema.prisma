@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  diamonds Int @default(0)
+  role     String @default("user") 
+
+  profile    Profile?
+  memberships Membership[]
+  participations QuestParticipation[]
+  userRewards UserReward[]
+  
+}
+
+model Profile {
+  id         String @id @default(uuid())
+  userId     String @unique
+  name       String
+  gender     String?
+  age        Int?
+  occupation String?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Faction {
+  id          String   @id @default(uuid())
+  name        String
+  niche       String
+  description String?
+  maxMembers  Int
+
+  members Membership[]   // ✅ ADD THIS
+  quests  Quest[]
+}
+
+model Membership {
+  id        String @id @default(uuid())
+  userId    String
+  factionId String
+  status    String  // "member" | "queued"
+
+  user    User    @relation(fields: [userId], references: [id])
+  faction Faction @relation(fields: [factionId], references: [id])
+}
+
+model Quest {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  reward      Int
+  factionId   String
+
+  status        String @default("pending") // pending | active
+  createdBy     String?
+
+  faction        Faction              @relation(fields: [factionId], references: [id])
+  participants   QuestParticipation[]  
+  
+}
+
+model QuestParticipation {
+  id        String @id @default(uuid())
+  userId    String
+  questId   String
+  status    String  // "accepted" | "completed" | "failed"
+
+  user  User  @relation(fields: [userId], references: [id])
+  quest Quest @relation(fields: [questId], references: [id])
+}
+
+model Reward {
+  id          String @id @default(uuid())
+  name        String
+  description String
+  cost        Int
+
+  users UserReward[]
+}
+
+model UserReward {
+  id       String @id @default(uuid())
+  userId   String
+  rewardId String
+
+  user   User   @relation(fields: [userId], references: [id])
+  reward Reward @relation(fields: [rewardId], references: [id])
+}
