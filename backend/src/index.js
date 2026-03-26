@@ -25,6 +25,9 @@ app.use("/factions", factionRoutes);
 const questRoutes = require("./routes/quest.routes");
 app.use("/quests", questRoutes);
 
+const rewardRoutes = require("./routes/reward.routes");
+app.use("/rewards", rewardRoutes);
+
 const userRoutes = require("./routes/user.routes");
 app.use("/", userRoutes);
 

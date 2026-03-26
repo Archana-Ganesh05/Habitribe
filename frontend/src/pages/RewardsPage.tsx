@@ -13,14 +13,14 @@ const RewardsPage = ({ onBack }: RewardsPageProps) => {
   const { rewards, diamonds, redeemReward } = useApp();
   const { toast } = useToast();
 
-  const handleRedeem = (rewardId: string) => {
+  const handleRedeem = async (rewardId: string) => {
     const reward = rewards.find(r => r.id === rewardId);
     if (!reward) return;
     if (diamonds < reward.cost) {
       toast({ title: '💎 Not enough diamonds', description: `You need ${reward.cost - diamonds} more diamonds.`, variant: 'destructive' });
       return;
     }
-    const success = redeemReward(rewardId);
+    const success = await redeemReward(rewardId);
     if (success) {
       toast({ title: '🎉 Reward Redeemed!', description: `${reward.name} has been added to your account.` });
     }

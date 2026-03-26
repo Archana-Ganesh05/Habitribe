@@ -16,11 +16,11 @@ const AuthPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!email.includes('@')) {
+    if (email !== 'Admin' && !email.includes('@')) {
       setError('Please enter a valid email.');
       return;
     }
@@ -36,9 +36,11 @@ const AuthPage = () => {
     }
 
     if (isLogin) {
-      if (!login(email, password)) setError('Invalid email or password.');
+      const success = await login(email, password);
+      if (!success) setError('Invalid email or password.');
     } else {
-      if (!signup(email, password)) setError('Email already registered.');
+      const success = await signup(email, password);
+      if (!success) setError('Email already registered.');
     }
   };
 
@@ -62,8 +64,8 @@ const AuthPage = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="warrior@habitribe.com" required />
+                <Label htmlFor="email">Email / Username</Label>
+                <Input id="email" type="text" value={email} onChange={e => setEmail(e.target.value)} placeholder="warrior@habitribe.com or Admin" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>

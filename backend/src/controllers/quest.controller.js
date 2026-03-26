@@ -7,7 +7,7 @@ exports.getFactionQuests = async (req, res) => {
   const quests = await prisma.quest.findMany({
     where: {
       factionId,
-      status: "active", // ✅ ONLY ACTIVE
+      status: "open", // ✅ ONLY ACTIVE
     },
   });
 
@@ -83,16 +83,19 @@ exports.completeQuest = async (req, res) => {
 // CREATE QUEST (user-generated)
 exports.createQuest = async (req, res) => {
   const userId = req.user.userId;
-  const { title, description, reward, factionId } = req.body;
+  const { title, description, reward, factionId, difficulty, duration, penaltyGraceDays } = req.body;
 
   const quest = await prisma.quest.create({
     data: {
       title,
       description,
-      reward,
+      reward: parseInt(reward) || 0,
       factionId,
       createdBy: userId,
-      status: "pending",
+      status: "pending_approval",
+      difficulty: difficulty || "beginner",
+      duration: parseInt(duration) || 7,
+      penaltyGraceDays: parseInt(penaltyGraceDays) || 3,
     },
   });
 
@@ -101,11 +104,11 @@ exports.createQuest = async (req, res) => {
 
 // APPROVE QUEST (moderator)
 exports.approveQuest = async (req, res) => {
-  const { questId } = req.body;
+  const { questId, reward } = req.body;
 
   const quest = await prisma.quest.update({
     where: { id: questId },
-    data: { status: "active" },
+    data: { status: "open", reward },
   });
 
   res.json({ message: "Quest approved ✅", quest });

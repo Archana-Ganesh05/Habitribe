@@ -6,19 +6,23 @@ exports.getFactions = async (req, res) => {
     include: {
       members: true,
       quests: {
-        where: { status: "active" },
+        include: {
+          participants: true
+        }
       },
     },
   });
 
   const formatted = factions.map((f) => ({
-    id: f.id,
-    name: f.name,
-    niche: f.niche,
-    maxMembers: f.maxMembers,
-
+    ...f,
     memberCount: f.members.length,
     questCount: f.quests.length,
+    quests: f.quests.map(q => ({
+      ...q,
+      acceptedBy: q.participants.filter(p => p.status === 'accepted' || p.status === 'completed').map(p => p.userId),
+      completedBy: q.participants.filter(p => p.status === 'completed').map(p => p.userId),
+      failedBy: q.participants.filter(p => p.status === 'failed').map(p => p.userId)
+    }))
   }));
 
   res.json(formatted);
@@ -26,32 +30,41 @@ exports.getFactions = async (req, res) => {
 
 // JOIN faction
 exports.joinFaction = async (req, res) => {
-  const userId = req.user.userId;
-  const { factionId } = req.body;
+  try {
+    const userId = req.user.userId;
+    const { factionId } = req.body;
 
-  // count current members
-  const count = await prisma.membership.count({
-    where: {
-      factionId,
-      status: "member",
-    },
-  });
+    const existing = await prisma.membership.findFirst({
+      where: { userId, factionId }
+    });
+    if (existing) return res.status(400).json({ error: "already_joined" });
 
-  const faction = await prisma.faction.findUnique({
-    where: { id: factionId },
-  });
+    // count current members
+    const count = await prisma.membership.count({
+      where: {
+        factionId,
+        status: "member",
+      },
+    });
 
-  const status = count < faction.maxMembers ? "member" : "queued";
+    const faction = await prisma.faction.findUnique({
+      where: { id: factionId },
+    });
 
-  const membership = await prisma.membership.create({
-    data: {
-      userId,
-      factionId,
-      status,
-    },
-  });
+    const status = count < faction.maxMembers ? "member" : "queued";
 
-  res.json(membership);
+    const membership = await prisma.membership.create({
+      data: {
+        userId,
+        factionId,
+        status,
+      },
+    });
+
+    res.json(membership);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.getMyFactions = async (req, res) => {

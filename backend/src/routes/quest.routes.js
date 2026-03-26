@@ -9,6 +9,6 @@ router.get("/faction/:factionId", auth, questController.getFactionQuests);
 router.post("/accept", auth, questController.acceptQuest);
 router.post("/complete", auth, questController.completeQuest);
 router.post("/create", auth, questController.createQuest);
-router.post("/approve",auth,role("moderator"),questController.approveQuest);
+router.post("/approve",auth,role("admin"),questController.approveQuest);
 
 module.exports = router;

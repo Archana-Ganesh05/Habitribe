@@ -96,28 +96,27 @@ const nicheQuestions: Record<string, { question: string; options: { value: strin
   ],
 };
 
-function calculateLevel(answers: string[]): 'beginner' | 'intermediate' | 'advanced' {
-  const scores: Record<string, number> = {};
-  answers.forEach(a => {
-    // First option = beginner weight, last = advanced
-    const allOptions = Object.values(nicheQuestions).flat().flatMap(q => q.options);
-    allOptions.forEach((opt, i) => {
-      if (opt.value === a) {
-        const qOptions = Object.values(nicheQuestions).flat().find(q => q.options.some(o => o.value === a))?.options || [];
-        const idx = qOptions.findIndex(o => o.value === a);
-        scores[a] = idx;
-      }
-    });
+function calculateLevel(niche: string, answers: string[]): 'beginner' | 'intermediate' | 'advanced' {
+  const questions = nicheQuestions[niche];
+  if (!questions) return 'beginner';
+  
+  let totalScore = 0;
+  answers.forEach((ans, qIndex) => {
+    const question = questions[qIndex];
+    if (question) {
+      const optIndex = question.options.findIndex(o => o.value === ans);
+      if (optIndex !== -1) totalScore += optIndex;
+    }
   });
-  const total = Object.values(scores).reduce((a, b) => a + b, 0);
-  const avg = total / answers.length;
+
+  const avg = totalScore / Math.max(1, answers.length);
   if (avg < 1.2) return 'beginner';
   if (avg < 2.2) return 'intermediate';
   return 'advanced';
 }
 
 const Questionnaire = () => {
-  const { setNicheAndLevel } = useApp();
+  const { setNicheAndLevel, setOnboardingStep } = useApp();
   const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
 
@@ -131,7 +130,7 @@ const Questionnaire = () => {
 
   const handleSubmit = () => {
     if (!selectedNiche || answers.length < questions.length) return;
-    const level = calculateLevel(answers);
+    const level = calculateLevel(selectedNiche, answers);
     setNicheAndLevel(selectedNiche, level);
   };
 
@@ -140,6 +139,10 @@ const Questionnaire = () => {
   return (
     <div className="min-h-screen gradient-hero p-4 py-12">
       <div className="max-w-2xl mx-auto animate-slide-up">
+        <button onClick={() => setOnboardingStep('profile')} className="flex items-center gap-2 text-muted-foreground hover:text-diamond mb-6 transition-colors">
+          <ChevronRight className="w-4 h-4 rotate-180" /> Back to Profile
+        </button>
+
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold">Choose Your Path</h1>
           <p className="text-muted-foreground mt-2">What do you want to improve upon?</p>

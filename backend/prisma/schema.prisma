@@ -40,6 +40,7 @@ model Faction {
   niche       String
   description String?
   maxMembers  Int
+  difficulty  String   @default("beginner")
 
   members Membership[]   // ✅ ADD THIS
   quests  Quest[]
@@ -64,6 +65,10 @@ model Quest {
 
   status        String @default("pending") // pending | active
   createdBy     String?
+
+  difficulty       String @default("beginner") 
+  duration         Int    @default(7)         
+  penaltyGraceDays Int    @default(3)         
 
   faction        Faction              @relation(fields: [factionId], references: [id])
   participants   QuestParticipation[]  
