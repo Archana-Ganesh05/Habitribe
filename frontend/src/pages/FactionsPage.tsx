@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +29,13 @@ const FactionsPage = () => {
       const scoreB = (b.members?.length || 0) * 2 + (b.questsSolved || 0) * 3 + (b.totalDiamonds || 0) * 0.01;
       return scoreB - scoreA;
     });
+
+  // Fallback: if no factions match exact skill level, show all factions in the niche
+  const nicheFactions = factions
+    .filter(f => f.niche === niche)
+    .sort((a, b) => (b.members?.length || 0) - (a.members?.length || 0));
+
+  const hasExactMatch = relevantFactions.length > 0;
 
   const otherFactions = factions
     .filter(f => f.niche === niche && f.difficulty !== skillLevel)
@@ -110,7 +116,7 @@ const FactionsPage = () => {
   return (
     <div className="min-h-screen gradient-hero p-4 py-12">
       <div className="max-w-3xl mx-auto animate-slide-up">
-        
+
         <button onClick={() => setOnboardingStep('questionnaire')} className="flex items-center gap-2 text-muted-foreground hover:text-diamond mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Questionnaire
         </button>
@@ -124,13 +130,22 @@ const FactionsPage = () => {
 
         <h2 className="font-display text-lg mb-4 text-diamond">Recommended for You</h2>
         <div className="grid gap-4 mb-8">
-          {relevantFactions.map(f => renderFactionCard(f, true))}
-          {relevantFactions.length === 0 && (
-            <p className="text-muted-foreground text-center py-8">No factions found for your level.</p>
+          {hasExactMatch ? (
+            relevantFactions.map(f => renderFactionCard(f, true))
+          ) : nicheFactions.length > 0 ? (
+            <>
+              <div className="flex items-center gap-2 text-sm text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-4 py-3 mb-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>No factions found for your exact level. Showing all {nicheLabels[niche || '']} factions — you can join any of them!</span>
+              </div>
+              {nicheFactions.map(f => renderFactionCard(f, true))}
+            </>
+          ) : (
+            <p className="text-muted-foreground text-center py-8">No factions found for your niche yet.</p>
           )}
         </div>
 
-        {otherFactions.length > 0 && (
+        {hasExactMatch && otherFactions.length > 0 && (
           <>
             <h2 className="font-display text-lg mb-4 text-muted-foreground">Other {nicheLabels[niche || '']} Factions</h2>
             <div className="grid gap-4 mb-8">

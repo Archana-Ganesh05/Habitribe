@@ -129,9 +129,10 @@ const Questionnaire = () => {
   };
 
   const handleSubmit = () => {
-    if (!selectedNiche || answers.length < questions.length) return;
+    if (!selectedNiche || answers.filter(Boolean).length < questions.length) return;
     const level = calculateLevel(selectedNiche, answers);
     setNicheAndLevel(selectedNiche, level);
+    setOnboardingStep(null); // Clear any manual override so computedStep ('factions') takes effect
   };
 
   const allAnswered = answers.filter(Boolean).length === questions.length;

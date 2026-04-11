@@ -25,6 +25,7 @@ export interface Faction {
   totalDiamonds: number;
   difficulty: string;
   members: any[];
+  queue?: any[];
   description: string;
 }
 
