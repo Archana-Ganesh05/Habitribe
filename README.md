@@ -51,3 +51,4 @@ Backend Team
 
 ## Conclusion
 HabiTribe builds a system where habits are socially enforced, making consistency easier and more engaging.
+ Minor change
